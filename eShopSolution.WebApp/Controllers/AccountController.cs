@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using eShopSolution.ApiIntegration;
 using eShopSolution.Utilities.Constants;
+using eShopSolution.ViewModels.Common;
 using eShopSolution.ViewModels.System.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace eShopSolution.WebApp.Controllers
 {
@@ -43,6 +45,7 @@ namespace eShopSolution.WebApp.Controllers
                 return View(request);
 
             var result = await _userApiClient.Authenticate(request);
+
             if (result.ResultObj == null)
             {
                 ModelState.AddModelError("", "Login failure");
@@ -60,6 +63,13 @@ namespace eShopSolution.WebApp.Controllers
                         userPrincipal,
                         authProperties);
 
+            // var user = await _userApiClient.GetByUserName(request.UserName);
+
+            //var session = HttpContext.Session.GetString(SystemConstants.UserSession);
+            //UserVm userVm = new UserVm();
+            //if (session != null)
+            //    userVm = JsonConvert.DeserializeObject<UserVm>(user);
+            //HttpContext.Session.SetString(SystemConstants.CartSession, JsonConvert.SerializeObject(user));
             return RedirectToAction("Index", "Home");
         }
 
@@ -68,6 +78,8 @@ namespace eShopSolution.WebApp.Controllers
         {
             await HttpContext.SignOutAsync(
                         CookieAuthenticationDefaults.AuthenticationScheme);
+            var session = HttpContext.Session.GetString(SystemConstants.CartSession);
+            session = null;
             return RedirectToAction("Index", "Home");
         }
 

@@ -60,47 +60,49 @@ namespace eShopSolution.Application.Catalog.Products
 
         public async Task<int> Create(ProductCreateRequest request)
         {
-            var languages = _context.Languages;
-            var translations = new List<ProductTranslation>();
-            foreach (var language in languages)
+            try
             {
-                if (language.Id == request.LanguageId)
+                var languages = _context.Languages;
+                var translations = new List<ProductTranslation>();
+                foreach (var language in languages)
                 {
-                    translations.Add(new ProductTranslation()
+                    if (language.Id == request.LanguageId)
                     {
-                        Name = request.Name,
-                        Description = request.Description,
-                        Details = request.Details,
-                        SeoDescription = request.SeoDescription,
-                        SeoAlias = request.SeoAlias,
-                        SeoTitle = request.SeoTitle,
-                        LanguageId = request.LanguageId
-                    });
+                        translations.Add(new ProductTranslation()
+                        {
+                            Name = request.Name,
+                            Description = request.Description,
+                            Details = request.Details,
+                            SeoDescription = request.SeoDescription,
+                            SeoAlias = request.SeoAlias,
+                            SeoTitle = request.SeoTitle,
+                            LanguageId = request.LanguageId
+                        });
+                    }
+                    else
+                    {
+                        translations.Add(new ProductTranslation()
+                        {
+                            Name = SystemConstants.ProductConstants.NA,
+                            Description = SystemConstants.ProductConstants.NA,
+                            SeoAlias = SystemConstants.ProductConstants.NA,
+                            LanguageId = language.Id
+                        });
+                    }
                 }
-                else
+                var product = new Product()
                 {
-                    translations.Add(new ProductTranslation()
-                    {
-                        Name = SystemConstants.ProductConstants.NA,
-                        Description = SystemConstants.ProductConstants.NA,
-                        SeoAlias = SystemConstants.ProductConstants.NA,
-                        LanguageId = language.Id
-                    });
-                }
-            }
-            var product = new Product()
-            {
-                Price = request.Price,
-                OriginalPrice = request.OriginalPrice,
-                Stock = request.Stock,
-                ViewCount = 0,
-                DateCreated = DateTime.Now,
-                ProductTranslations = translations
-            };
-            //Save image
-            if (request.ThumbnailImage != null)
-            {
-                product.ProductImages = new List<ProductImage>()
+                    Price = request.Price,
+                    OriginalPrice = request.OriginalPrice,
+                    Stock = request.Stock,
+                    ViewCount = 0,
+                    DateCreated = DateTime.Now,
+                    ProductTranslations = translations
+                };
+                //Save image
+                if (request.ThumbnailImage != null)
+                {
+                    product.ProductImages = new List<ProductImage>()
                 {
                     new ProductImage()
                     {
@@ -112,10 +114,15 @@ namespace eShopSolution.Application.Catalog.Products
                         SortOrder = 1
                     }
                 };
+                }
+                _context.Products.Add(product);
+                await _context.SaveChangesAsync();
+                return product.Id;
             }
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
-            return product.Id;
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public async Task<int> Delete(int productId)

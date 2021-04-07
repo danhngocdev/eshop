@@ -8,6 +8,7 @@ namespace eShopSolution.Utilities.Constants
     {
         public const string MainConnectionString = "eShopSolutionDb";
         public const string CartSession = "CartSession";
+        public const string UserSession = "UserSession";
 
         public class AppSettings
         {

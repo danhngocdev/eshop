@@ -28,6 +28,8 @@ namespace eShopSolution.WebApp.Controllers
 
         public IActionResult Checkout()
         {
+            ViewBag.User = HttpContext.Session.GetString(SystemConstants.AppSettings.Token);
+
             return View(GetCheckoutViewModel());
         }
 
@@ -54,6 +56,9 @@ namespace eShopSolution.WebApp.Controllers
             };
             //TODO: Add to API
             TempData["SuccessMsg"] = "Order puschased successful";
+            var session = HttpContext.Session.GetString(SystemConstants.CartSession);
+            session = null;
+            //session = null;
             return View(model);
         }
 
@@ -70,29 +75,73 @@ namespace eShopSolution.WebApp.Controllers
         public async Task<IActionResult> AddToCart(int id, string languageId)
         {
             var product = await _productApiClient.GetById(id, languageId);
-
             var session = HttpContext.Session.GetString(SystemConstants.CartSession);
             List<CartItemViewModel> currentCart = new List<CartItemViewModel>();
             if (session != null)
-                currentCart = JsonConvert.DeserializeObject<List<CartItemViewModel>>(session);
-
-            int quantity = 1;
-            if (currentCart.Any(x => x.ProductId == id))
             {
-                quantity = currentCart.First(x => x.ProductId == id).Quantity + 1;
+                currentCart = JsonConvert.DeserializeObject<List<CartItemViewModel>>(session);
+                if (currentCart.Exists(x => x.ProductId == id))
+                {
+                    foreach (var item in currentCart)
+                    {
+                        if (item.ProductId == id)
+                        {
+                            item.Quantity += 1;
+                        }
+                    }
+                }
+                else
+                {
+                    var cartItem = new CartItemViewModel()
+                    {
+                        ProductId = id,
+                        Description = product.Description,
+                        Image = product.ThumbnailImage,
+                        Name = product.Name,
+                        Price = product.Price,
+                        Quantity = 1
+                    };
+
+                    currentCart.Add(cartItem);
+                }
+            }
+            else
+            {
+                var item = new CartItemViewModel();
+                item.ProductId = id;
+                item.Description = product.Description;
+                item.Name = product.Name;
+                item.Price = product.Price;
+                item.Quantity = 1;
+                currentCart.Add(item);
             }
 
-            var cartItem = new CartItemViewModel()
-            {
-                ProductId = id,
-                Description = product.Description,
-                Image = product.ThumbnailImage,
-                Name = product.Name,
-                Price = product.Price,
-                Quantity = quantity
-            };
+            //var product = await _productApiClient.GetById(id, languageId);
 
-            currentCart.Add(cartItem);
+            //var session = HttpContext.Session.GetString(SystemConstants.CartSession);
+            //List<CartItemViewModel> currentCart = new List<CartItemViewModel>();
+            //if (session != null)
+            //    currentCart = JsonConvert.DeserializeObject<List<CartItemViewModel>>(session);
+
+            //int quantity = 1;
+            //if (currentCart.Any(x => x.ProductId == id))
+            //{
+            //    quantity = currentCart.First(x => x.ProductId == id).Quantity + 1;
+            //}
+            //else
+            //{
+            //    var cartItem = new CartItemViewModel()
+            //    {
+            //        ProductId = id,
+            //        Description = product.Description,
+            //        Image = product.ThumbnailImage,
+            //        Name = product.Name,
+            //        Price = product.Price,
+            //        Quantity = quantity
+            //    };
+
+            //    currentCart.Add(cartItem);
+            //}
 
             HttpContext.Session.SetString(SystemConstants.CartSession, JsonConvert.SerializeObject(currentCart));
             return Ok(currentCart);
@@ -128,6 +177,7 @@ namespace eShopSolution.WebApp.Controllers
             List<CartItemViewModel> currentCart = new List<CartItemViewModel>();
             if (session != null)
                 currentCart = JsonConvert.DeserializeObject<List<CartItemViewModel>>(session);
+            //session = null;
             var checkoutVm = new CheckoutViewModel()
             {
                 CartItems = currentCart,

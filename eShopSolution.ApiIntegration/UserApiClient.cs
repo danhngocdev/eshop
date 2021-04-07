@@ -6,8 +6,11 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,6 +29,11 @@ namespace eShopSolution.ApiIntegration
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _httpClientFactory = httpClientFactory;
+
+            ServicePointManager.ServerCertificateValidationCallback =
+   delegate (object sender, X509Certificate certificate, X509Chain chain,
+       SslPolicyErrors sslPolicyErrors)
+   { return true; };
         }
 
         public async Task<ApiResult<string>> Authenticate(LoginRequest request)
@@ -37,7 +45,7 @@ namespace eShopSolution.ApiIntegration
 
                 var client = _httpClientFactory.CreateClient();
                 client.BaseAddress = new Uri(_configuration["BaseAddress"]);
-                var response = await client.PostAsync("/api/users/authenticate", httpContent).ConfigureAwait(true);
+                var response = await client.PostAsync("/api/users/authenticate", httpContent);
                 if (response.IsSuccessStatusCode)
                 {
                     return JsonConvert.DeserializeObject<ApiSuccessResult<string>>(await response.Content.ReadAsStringAsync());
@@ -72,6 +80,20 @@ namespace eShopSolution.ApiIntegration
             client.BaseAddress = new Uri(_configuration["BaseAddress"]);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessions);
             var response = await client.GetAsync($"/api/users/{id}");
+            var body = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+                return JsonConvert.DeserializeObject<ApiSuccessResult<UserVm>>(body);
+
+            return JsonConvert.DeserializeObject<ApiErrorResult<UserVm>>(body);
+        }
+
+        public async Task<ApiResult<UserVm>> GetByUserName(string username)
+        {
+            var sessions = _httpContextAccessor.HttpContext.Session.GetString("Token");
+            var client = _httpClientFactory.CreateClient();
+            client.BaseAddress = new Uri(_configuration["BaseAddress"]);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessions);
+            var response = await client.GetAsync($"/api/users/{username}");
             var body = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
                 return JsonConvert.DeserializeObject<ApiSuccessResult<UserVm>>(body);

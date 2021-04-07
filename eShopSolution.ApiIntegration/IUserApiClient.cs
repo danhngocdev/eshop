@@ -19,6 +19,8 @@ namespace eShopSolution.ApiIntegration
 
         Task<ApiResult<UserVm>> GetById(Guid id);
 
+        Task<ApiResult<UserVm>> GetByUserName(string username);
+
         Task<ApiResult<bool>> Delete(Guid id);
 
         Task<ApiResult<bool>> RoleAssign(Guid id, RoleAssignRequest request);
