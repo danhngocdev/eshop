@@ -30,18 +30,25 @@ namespace eShopSolution.ApiIntegration
 
         public async Task<ApiResult<string>> Authenticate(LoginRequest request)
         {
-            var json = JsonConvert.SerializeObject(request);
-            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(_configuration["BaseAddress"]);
-            var response = await client.PostAsync("/api/users/authenticate", httpContent);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return JsonConvert.DeserializeObject<ApiSuccessResult<string>>(await response.Content.ReadAsStringAsync());
-            }
+                var json = JsonConvert.SerializeObject(request);
+                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return JsonConvert.DeserializeObject<ApiErrorResult<string>>(await response.Content.ReadAsStringAsync());
+                var client = _httpClientFactory.CreateClient();
+                client.BaseAddress = new Uri(_configuration["BaseAddress"]);
+                var response = await client.PostAsync("/api/users/authenticate", httpContent).ConfigureAwait(true);
+                if (response.IsSuccessStatusCode)
+                {
+                    return JsonConvert.DeserializeObject<ApiSuccessResult<string>>(await response.Content.ReadAsStringAsync());
+                }
+
+                return JsonConvert.DeserializeObject<ApiErrorResult<string>>(await response.Content.ReadAsStringAsync());
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public async Task<ApiResult<bool>> Delete(Guid id)
