@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using eShopSolution.Application.Catalog.Categories;
 using eShopSolution.Application.Catalog.Products;
+using eShopSolution.Application.Checkout;
 using eShopSolution.Application.Common;
 using eShopSolution.Application.System.Languages;
 using eShopSolution.Application.System.Roles;
@@ -58,6 +59,7 @@ namespace eShopSolution.BackendApi
 
             services.AddTransient<IRoleService, RoleService>();
             services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IOrderService, OrderService>();
 
             //services.AddTransient<IValidator<LoginRequest>, LoginRequestValidator>();
             //services.AddTransient<IValidator<RegisterRequest>, RegisterRequestValidator>();
@@ -153,7 +155,7 @@ namespace eShopSolution.BackendApi
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swagger eShopSolution V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swagger SHOP V1");
             });
 
             app.UseEndpoints(endpoints =>

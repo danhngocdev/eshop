@@ -1,14 +1,13 @@
 ﻿using eShopSolution.Data.EF;
-using eShopSolution.Data.Enums;
+using eShopSolution.Data.Entities;
 using eShopSolution.ViewModels.Common;
 using eShopSolution.ViewModels.Order;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using eShopSolution.Application.Order;
 
-namespace eShopSolution.Application.Order
+namespace eShopSolution.Application.Checkout
 {
     public class OrderService : IOrderService
     {
@@ -21,25 +20,22 @@ namespace eShopSolution.Application.Order
 
         public async Task<ApiResult<bool>> Add(OrderVm request)
         {
-            //try
-            //{
-            //    var order = new Order()
-            //    {
-            //        ShipAddress = request.ShipAddress,
-            //        ShipEmail = request.ShipEmail,
-            //        ShipName = request.ShipName,
-            //        Status = (int)OrderStatus.InProgress
-            //    };
+            var order = new Order()
+            {
+                ShipName = request.ShipName,
+                ShipAddress = request.ShipAddress,
+                ShipPhoneNumber = request.ShipPhoneNumber,
+                Status = Data.Enums.OrderStatus.InProgress,
+                ShipEmail = request.ShipName,
+                UserId = request.UserId,
+                OrderDate = DateTime.Now,
+             
 
-            //    _context.Orders.Add(order);
-            //    await _context.SaveChangesAsync();
-            //    return product.Id;
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw ex;
-            //}
-            throw new NotImplementedException();
+            };
+            var result =  _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            return new ApiSuccessResult<bool>();
+
         }
 
         public Task<ApiResult<bool>> Delete(Guid id)

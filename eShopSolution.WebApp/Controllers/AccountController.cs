@@ -63,6 +63,9 @@ namespace eShopSolution.WebApp.Controllers
                         userPrincipal,
                         authProperties);
 
+          
+
+            var user = User;
             // var user = await _userApiClient.GetByUserName(request.UserName);
 
             //var session = HttpContext.Session.GetString(SystemConstants.UserSession);

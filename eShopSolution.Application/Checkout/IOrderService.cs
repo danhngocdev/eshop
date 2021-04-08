@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace eShopSolution.Application.Order
+namespace eShopSolution.Application.Checkout
 {
-    public interface IOrderService
+  public  interface IOrderService
     {
         Task<ApiResult<bool>> Update(Guid id, OrderVm request);
 

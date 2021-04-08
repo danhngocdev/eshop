@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using eShopSolution.ApiIntegration;
 using eShopSolution.Utilities.Constants;
+using eShopSolution.ViewModels.Order;
 using eShopSolution.ViewModels.Sales;
 using eShopSolution.WebApp.Models;
 using Microsoft.AspNetCore.Http;
@@ -15,10 +16,11 @@ namespace eShopSolution.WebApp.Controllers
     public class CartController : Controller
     {
         private readonly IProductApiClient _productApiClient;
-
-        public CartController(IProductApiClient productApiClient)
+        private readonly IOrderApiClient _orderApiClient;
+        public CartController(IProductApiClient productApiClient, IOrderApiClient orderApiClient)
         {
             _productApiClient = productApiClient;
+            _orderApiClient = orderApiClient;
         }
 
         public IActionResult Index()
@@ -30,11 +32,16 @@ namespace eShopSolution.WebApp.Controllers
         {
             ViewBag.User = HttpContext.Session.GetString(SystemConstants.AppSettings.Token);
 
+            if (ViewBag.User == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             return View(GetCheckoutViewModel());
         }
 
         [HttpPost]
-        public IActionResult Checkout(CheckoutViewModel request)
+        public async Task<IActionResult> Checkout(CheckoutViewModel request)
         {
             var model = GetCheckoutViewModel();
             var orderDetails = new List<OrderDetailVm>();
@@ -46,15 +53,18 @@ namespace eShopSolution.WebApp.Controllers
                     Quantity = item.Quantity
                 });
             }
-            var checkoutRequest = new CheckoutRequest()
+            var checkoutRequest = new OrderVm()
             {
-                Address = request.CheckoutModel.Address,
-                Name = request.CheckoutModel.Name,
-                Email = request.CheckoutModel.Email,
-                PhoneNumber = request.CheckoutModel.PhoneNumber,
-                OrderDetails = orderDetails
+                ShipAddress = request.CheckoutModel.Address,
+                ShipEmail = request.CheckoutModel.Email,
+                ShipName = request.CheckoutModel.Name,
+                ShipPhoneNumber = request.CheckoutModel.PhoneNumber,
+                UserId = Guid.Parse("A252F2A1-4D6F-4F6C-CB65-08D8F920AFD2")
             };
             //TODO: Add to API
+
+            var result = await _orderApiClient.Add(checkoutRequest);
+
             TempData["SuccessMsg"] = "Order puschased successful";
             var session = HttpContext.Session.GetString(SystemConstants.CartSession);
             session = null;
